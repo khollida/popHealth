@@ -1,5 +1,4 @@
 module Api
-require 'fileutils'
   class PatientsController < ApplicationController
     resource_description do
       short 'Patients'
@@ -18,7 +17,7 @@ require 'fileutils'
     respond_to :json
     before_filter :authenticate_user!
     before_filter :validate_authorization!
-    before_filter :load_patient, :only => [:index, :show, :delete, :toggle_excluded, :results]
+    before_filter :load_patient, :only => [:show, :delete, :toggle_excluded, :results]
     before_filter :set_pagination_params, :only => :index
     before_filter :set_filter_params, :only => :index
 
