@@ -1,4 +1,5 @@
-  module Api
+module Api
+require 'fileutils'
   class PatientsController < ApplicationController
     resource_description do
       short 'Patients'
@@ -17,7 +18,7 @@
     respond_to :json
     before_filter :authenticate_user!
     before_filter :validate_authorization!
-    before_filter :load_patient, :only => [:show, :delete, :toggle_excluded, :results]
+    before_filter :load_patient, :only => [:index, :show, :delete, :toggle_excluded, :results]
     before_filter :set_pagination_params, :only => :index
     before_filter :set_filter_params, :only => :index
 
@@ -66,10 +67,11 @@
     description "Upload a QRDA Category I document for a patient into popHealth."
     def create
       authorize! :create, Record
-      success = HealthDataStandards::Import::BulkRecordImporter.import(params[:file])
+      @file = params[:file].read
+      success = HealthDataStandards::Import::BulkRecordImporter.import(@file)
       if success
-        Log.create(:username => @current_user.username, :event => 'record import')
-        render status: 201, text: 'Patient Imported'
+        Log.create(:username => @current_user.username, :event => ' API record import')
+        render status: 201, plain: "File Imported via API"
       else
         render status: 500, text: 'Patient record did not save properly'
       end
@@ -98,7 +100,7 @@
       render :json=> results_with_measure_metadata(@patient.cache_results(params))
     end
 
-    private
+    private 
 
     def load_patient
       @patient = Record.find(params[:id])
