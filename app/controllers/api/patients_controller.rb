@@ -30,8 +30,9 @@ module Api
     param_group :pagination
     formats ['json']
     def index
-      records = Record.where(@query)
-      respond_with  paginate(api_patients_url,records)
+      records = Record.all
+      render json: records
+      
     end
 
     api :GET, "/patients/:id[?include_results=:include_results]", "Retrieve an individual patient"
