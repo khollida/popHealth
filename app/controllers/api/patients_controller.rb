@@ -67,11 +67,11 @@ module Api
     description "Upload a QRDA Category I document for a patient into popHealth."
     def create
       authorize! :create, Record
-      @file = params[:file].read
-      success = HealthDataStandards::Import::BulkRecordImporter.import(@file)
+      file = params[:file].read
+      success = HealthDataStandards::Import::BulkRecordImporter.import(file)
       if success
         Log.create(:username => @current_user.username, :event => ' API record import')
-        render status: 201, plain: "File Imported via API"
+        render status: 201, text: "File Imported"
       else
         render status: 500, text: 'Patient record did not save properly'
       end
