@@ -14,7 +14,7 @@ module Api
       PCDESC
     end
     include PaginationHelper
-    respond_to :json
+    respond_to :json, :html
     before_filter :authenticate_user!
     before_filter :validate_authorization!
     before_filter :load_patient, :only => [:show, :delete, :toggle_excluded, :results]
@@ -30,9 +30,8 @@ module Api
     param_group :pagination
     formats ['json']
     def index
-      records = Record.all
-      render json: records
-      
+      records = Record.where(@query)
+      render json: paginate(api_patients_url,records)
     end
 
     api :GET, "/patients/:id[?include_results=:include_results]", "Retrieve an individual patient"
@@ -63,14 +62,15 @@ module Api
 
     api :POST, "/patients", "Load a patient into popHealth"
     formats ['xml']
-    param :file, nil, :desc => "The QRDA Cat I file", :required => true
+    param :file, ActionDispatch::Http::UploadedFile, :desc => "The QRDA Cat I file", :required => true
     description "Upload a QRDA Category I document for a patient into popHealth."
     def create
       authorize! :create, Record
       success = HealthDataStandards::Import::BulkRecordImporter.import(params[:file].read)
+      file = params[:file].content_type
       if success
         Log.create(:username => @current_user.username, :event => ' API record import')
-        render status: 201, text: "File Imported"
+        render status: 201, text: file
       else
         render status: 500, text: 'Patient record did not save properly'
       end
